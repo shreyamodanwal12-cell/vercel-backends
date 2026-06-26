@@ -1,0 +1,212 @@
+{
+  "books": [
+    {
+      "id": 1,
+      "slug": "mystery-ink-river",
+      "title": "Mystery of the Ink River",
+      "author": "N. Carter",
+      "authorId": 1,
+      "category": "Books",
+      "price": 24.99,
+      "oldPrice": 29.99,
+      "rating": 4.8,
+      "reviews": 215,
+      "badge": "Bestseller",
+      "cover": "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=900&q=80",
+      "description": "A thrilling tale of ink, secrets, and an unexpected treasure hidden inside a small town library.",
+      "info": {
+        "pages": 384,
+        "language": "English",
+        "publisher": "River House Press",
+        "isbn": "978-1-23456-789-7"
+      }
+    },
+    {
+      "id": 2,
+      "slug": "superhero-chronicles",
+      "title": "Superhero Chronicles",
+      "author": "R. Morgan",
+      "authorId": 2,
+      "category": "Comics",
+      "price": 16.49,
+      "oldPrice": 19.99,
+      "rating": 4.7,
+      "reviews": 174,
+      "badge": "Popular",
+      "cover": "https://images.unsplash.com/photo-1524985069026-dd778a71c7b4?auto=format&fit=crop&w=900&q=80",
+      "description": "A modern comic anthology featuring a diverse cast of heroes and captivating artwork.",
+      "info": {
+        "pages": 128,
+        "language": "English",
+        "publisher": "Galaxy Comics",
+        "isbn": "978-1-23456-789-8"
+      }
+    },
+    {
+      "id": 4,
+      "slug": "manga-legends",
+      "title": "Manga Legends",
+      "author": "S. Takahashi",
+      "authorId": 4,
+      "category": "Manga",
+      "price": 13.99,
+      "oldPrice": 18.99,
+      "rating": 4.6,
+      "reviews": 196,
+      "badge": "New",
+      "cover": "https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=900&q=80",
+      "description": "A bold manga series combining dramatic action and heartfelt character growth.",
+      "info": {
+        "pages": 192,
+        "language": "Japanese",
+        "publisher": "Shinobi Press",
+        "isbn": "978-1-23456-789-0"
+      }
+    },
+    {
+      "id": 5,
+      "slug": "collectors-stories",
+      "title": "Collector's Stories",
+      "author": "E. Hargrove",
+      "authorId": 5,
+      "category": "Books",
+      "price": 27.95,
+      "oldPrice": 34.95,
+      "rating": 4.9,
+      "reviews": 232,
+      "badge": "Exclusive",
+      "cover": "https://images.unsplash.com/photo-1455885667255-2f13723b03c0?auto=format&fit=crop&w=900&q=80",
+      "description": "A luxurious anthology of collector classics for avid book lovers.",
+      "info": {
+        "pages": 308,
+        "language": "English",
+        "publisher": "Vintage Editions",
+        "isbn": "978-1-23456-789-1"
+      }
+    },
+    {
+      "id": 6,
+      "slug": "adventure-comic-pack",
+      "title": "Adventure Comic Pack",
+      "author": "L. Harper",
+      "authorId": 6,
+      "category": "Comics",
+      "price": 12.99,
+      "oldPrice": 15.99,
+      "rating": 4.4,
+      "reviews": 95,
+      "badge": "Great Choice",
+      "cover": "https://images.unsplash.com/photo-1527030280862-64139fba04ca?auto=format&fit=crop&w=900&q=80",
+      "description": "A thrilling collection of adventurous comics for readers of every age.",
+      "info": {
+        "pages": 148,
+        "language": "English",
+        "publisher": "Adventure House",
+        "isbn": "978-1-23456-789-2"
+      }
+    }
+  ],
+  "categories": [
+    {
+      "id": 1,
+      "title": "Books",
+      "description": "Fiction, nonfiction and collectible editions for every reader.",
+      "image": "https://images.unsplash.com/photo-1516979187457-637abb4f9353?auto=format&fit=crop&w=900&q=80"
+    },
+    {
+      "id": 2,
+      "title": "Comics",
+      "description": "Action-packed comics from indie and mainstream creators.",
+      "image": "https://images.unsplash.com/photo-1526312426976-f4d754fa9bd6?auto=format&fit=crop&w=900&q=80"
+    },
+    {
+      "id": 3,
+      "title": "Graphic Novels",
+      "description": "Illustrated stories that blend visual and literary art.",
+      "image": "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=900&q=80"
+    },
+    {
+      "id": 4,
+      "title": "Manga",
+      "description": "Popular manga series with dramatic art and storytelling.",
+      "image": "https://images.unsplash.com/photo-1544717305-996b815c338c?auto=format&fit=crop&w=900&q=80"
+    }
+  ],
+  "users": [
+    {
+      "id": 1,
+      "name": "Jordan Banks",
+      "email": "jordan@ibid.com",
+      "password": "user123",
+      "role": "Shopper"
+    },
+    {
+      "id": 2,
+      "name": "Admin User",
+      "email": "admin@ibid.com",
+      "password": "admin123",
+      "role": "Admin"
+    },
+    {
+      "id": 3,
+      "name": "srwarjbwjke",
+      "email": "jhsgjhkjfsejgjfwer@gmail.com",
+      "password": "12345",
+      "role": "Shopper"
+    },
+    {
+      "id": 4,
+      "name": "savan",
+      "email": "savan@gmail.com",
+      "password": "12345",
+      "role": "Shopper"
+    }
+  ],
+  "orders": [
+    {
+      "id": 1,
+      "userId": 1,
+      "items": [
+        {
+          "bookId": 1,
+          "title": "Mystery of the Ink River",
+          "quantity": 1,
+          "price": 24.99
+        }
+      ],
+      "total": 24.99,
+      "status": "Delivered",
+      "createdAt": "2026-05-15T08:32:00.000Z"
+    },
+    {
+      "id": 2,
+      "userId": 1,
+      "items": [
+        {
+          "bookId": 2,
+          "title": "Superhero Chronicles",
+          "quantity": 2,
+          "price": 16.49
+        }
+      ],
+      "total": 32.98,
+      "status": "Processing",
+      "createdAt": "2026-05-18T12:15:00.000Z"
+    },
+    {
+      "id": 3,
+      "userId": 1,
+      "items": [
+        {
+          "bookId": 4,
+          "title": "Manga Legends",
+          "quantity": 1,
+          "price": 13.99
+        }
+      ],
+      "total": 13.99,
+      "status": "Pending",
+      "createdAt": "2026-05-22T16:45:00.000Z"
+    }
+  ]
+}
