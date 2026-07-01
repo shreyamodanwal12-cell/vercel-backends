@@ -364,6 +364,95 @@ app.put('/api/vendors/:id/approve', async (req, res) => {
 
   res.json(data[0]);
 });
+
+// VENDOR register API
+
+app.post("/api/vendor/register", async (req, res) => {
+  try {
+    console.log("🔥 REQUEST BODY =", req.body);
+
+    const { name, email, password, shop_name, phone, address } = req.body;
+
+    const { data, error } = await supabase
+      .from("users")
+      .insert([
+        {
+          name,
+          email,
+          password,
+          shop_name,
+          phone,
+          address,
+          role: "Vendor",
+          is_approved: true,
+          is_active: true,
+        },
+      ])
+      .select();
+//--------------------changes here ----------
+    if (error) {
+      console.log("🔥 SUPABASE ERROR =", error);
+
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Vendor registered successfully. Wait for admin approval.",
+      data: data[0],
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+});
+// VENDOR LOGIN API
+
+app.post('/api/vendor/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .eq('password', password)
+      .eq('role', 'Vendor')
+      .single();
+
+    if (error || !data) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid credentials",
+      });
+    }
+
+    if (!data.is_approved) {
+      return res.status(403).json({
+        success: false,
+        message: "Admin approval pending",
+      });
+    }
+
+    return res.json({
+      success: true,
+      vendor: data,
+    });
+
+  } catch (err) {
+    console.error("LOGIN ERROR:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+});
 // // categories api4
 // app.post('/api/categories', async (req, res) => {
 //   const { data, error } = await supabase
@@ -536,6 +625,94 @@ app.post('/api/orders', async (req, res) => {
     })
   }
 })
+// ---------------- GET PRODUCTS ----------------
+app.get('/api/products', async (req, res) => {
+  const { data, error } = await supabase
+    .from('products')
+    .select('*');
+
+  console.log("GET ERROR =", error);
+
+  if (error) {
+    return res.status(500).json({ error: error.message });
+  }
+
+  res.json(data);
+});
+
+app.get('/api/products/:id', async (req, res) => {
+  const { data, error } = await supabase
+    .from('products')
+    .select('*')
+    .eq('id', req.params.id)
+    .single();
+
+  if (error) {
+    return res.status(500).json({
+      error: error.message,
+    });
+  }
+
+  res.json(data);
+});
+
+// ---------------- CREATE PRODUCT ----------------
+app.post('/api/products', async (req, res) => {
+  console.log("PRODUCT DATA =", req.body);
+
+  const product = req.body;
+
+ delete product.slug;
+  const { data, error } = await supabase
+    .from("products")
+    
+    .insert([product])
+    .select();
+  console.log("INSERT ERROR =", error);
+  console.log("INSERT DATA =", data);
+  if (error) {
+    return res.status(500).json({ error: error.message,
+       details: error
+    });
+  }
+
+  res.status(201).json(data[0]);
+});
+
+//--------------post product
+app.put('/api/products/:id', async (req, res) => {
+  const { data, error } = await supabase
+    .from('products')
+    .update({
+      ...req.body,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', req.params.id)
+    .select();
+
+  if (error) {
+    return res.status(500).json({
+      error: error.message,
+    });
+  }
+
+  res.json(data[0]);
+});
+
+app.delete('/api/products/:id', async (req, res) => {
+  const { error } = await supabase
+    .from('products')
+    .delete()
+    .eq('id', req.params.id);
+
+  if (error) {
+    return res.status(500).json({
+      error: error.message,
+    });
+  }
+
+  res.json({ success: true });
+});
 // GET ALL ORDERS
 app.get('/api/orders', async (req, res) => {
   const { data, error } = await supabase
@@ -628,5 +805,5 @@ if (process.env.NODE_ENV !== "production") {
     console.log(`iBid backend running on http://localhost:${PORT}`);
   });
 }
-
+console.log("SERVER FILE RUNNING");
 export default app;
