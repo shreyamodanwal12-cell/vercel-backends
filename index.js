@@ -640,6 +640,80 @@ app.get('/api/products', async (req, res) => {
   res.json(data);
 });
 
+// ---------------- ADMIN PENDING PRODUCTS ----------------
+app.get("/api/admin/pending-products", async (req, res) => {
+  const { data, error } = await supabase
+    .from("products")
+    .select("*")
+    .eq("approval_status", "Pending");
+
+  if (error) {
+    return res.status(500).json({
+      error: error.message,
+    });
+  }
+
+  res.json({
+    success: true,
+    products: data,
+  });
+});
+
+// ---------------- APPROVE PRODUCT ----------------
+app.put("/api/admin/products/:id/approve", async (req, res) => {
+
+  const { data, error } = await supabase
+    .from("products")
+    .update({
+      approval_status: "Approved",
+      is_active: true,
+    })
+    .eq("id", req.params.id)
+    .select();
+
+  if (error) {
+    return res.status(500).json({
+      error: error.message,
+    });
+  }
+
+  res.json({
+    success: true,
+    product: data[0],
+  });
+
+});
+
+
+app.get("/api/vendor/products/:vendorId", async (req, res) => {
+  try {
+    const { vendorId } = req.params;
+
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .eq("vendor_id", vendorId)
+      .order("id", { ascending: false });
+
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    res.json({
+      success: true,
+      products: data,
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+});
 app.get('/api/products/:id', async (req, res) => {
   const { data, error } = await supabase
     .from('products')
@@ -661,6 +735,9 @@ app.post('/api/products', async (req, res) => {
   console.log("PRODUCT DATA =", req.body);
 
   const product = req.body;
+
+// Vendor ID save karo
+product.vendor_id = Number(product.vendor_id);
 
  delete product.slug;
   const { data, error } = await supabase
