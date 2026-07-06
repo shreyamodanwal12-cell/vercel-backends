@@ -625,6 +625,59 @@ app.post('/api/orders', async (req, res) => {
     })
   }
 })
+
+
+// =============================
+// GET VENDOR ORDERS
+// =============================
+app.get("/api/vendor/orders/:vendorId", async (req, res) => {
+  try {
+    const vendorId = Number(req.params.vendorId);
+
+    // Orders lao
+    const { data: orders, error } = await supabase
+      .from("orders")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      return res.status(500).json({
+        error: error.message,
+      });
+    }
+
+    // Sirf wahi orders rakho jisme vendor ke products hain
+ const vendorOrders = orders
+  .map((order) => {
+    const vendorItems = (order.items || []).filter(
+      (item) => Number(item.vendor_id) === vendorId
+    );
+
+    if (vendorItems.length === 0) return null;
+
+    return {
+      ...order,
+      items: vendorItems,
+      total: vendorItems.reduce(
+        (sum, item) => sum + Number(item.price) * Number(item.quantity),
+        0
+      ),
+    };
+  })
+  .filter(Boolean);
+
+    res.json({
+      success: true,
+      orders: vendorOrders,
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      error: err.message,
+    });
+  }
+});
+
 // ---------------- GET PRODUCTS ----------------
 app.get('/api/products', async (req, res) => {
   const { data, error } = await supabase
