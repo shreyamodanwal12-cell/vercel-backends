@@ -5,7 +5,7 @@ import express from 'express'
 //import cors from 'cors'
 import { createClient } from '@supabase/supabase-js'
 
-const app = express()
+const app = express();
 
 import cors from 'cors';
 
@@ -20,6 +20,26 @@ app.use(cors({
 
 app.options("*", cors());
 app.use(express.json())
+
+// function verifyVendor(req, res, next) {
+//   const auth = req.headers.authorization;
+
+//   if (!auth) {
+//     return res.status(401).json({
+//       success: false,
+//       message: "Token missing",
+//     });
+//   }
+
+//   if (auth !== "Bearer vendor-secret-token") {
+//     return res.status(403).json({
+//       success: false,
+//       message: "Unauthorized",
+//     });
+//   }
+
+//   next();
+// }
 
 const PORT = process.env.PORT || 4000
 
@@ -48,6 +68,7 @@ app.post('/api/categories', async (req, res) => {
       .select();
 
     console.log('CATEGORY DATA =', data);
+    
     console.log('CATEGORY ERROR =', error);
 
     if (error) {
@@ -440,10 +461,10 @@ app.post('/api/vendor/login', async (req, res) => {
       });
     }
 
-    return res.json({
-      success: true,
-      vendor: data,
-    });
+   return res.json({
+  success: true,
+  vendor: data,
+});
 
   } catch (err) {
     console.error("LOGIN ERROR:", err);
@@ -738,7 +759,8 @@ app.put("/api/admin/products/:id/approve", async (req, res) => {
 });
 
 
-app.get("/api/vendor/products/:vendorId", async (req, res) => {
+app.get("/api/vendor/products/:vendorId", 
+  async (req, res) => {
   try {
     const { vendorId } = req.params;
 
@@ -784,7 +806,8 @@ app.get('/api/products/:id', async (req, res) => {
 });
 
 // ---------------- CREATE PRODUCT ----------------
-app.post('/api/products', async (req, res) => {
+app.post("/api/products",
+  async (req, res) => {
   console.log("PRODUCT DATA =", req.body);
 
   const product = req.body;
@@ -810,7 +833,7 @@ product.vendor_id = Number(product.vendor_id);
 });
 
 //--------------post product
-app.put('/api/products/:id', async (req, res) => {
+app.put("/api/products/:id", async (req, res) => {
   const { data, error } = await supabase
     .from('products')
     .update({
@@ -829,7 +852,7 @@ app.put('/api/products/:id', async (req, res) => {
   res.json(data[0]);
 });
 
-app.delete('/api/products/:id', async (req, res) => {
+app.delete("/api/products/:id", async (req, res) => {
   const { error } = await supabase
     .from('products')
     .delete()
