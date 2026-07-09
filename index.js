@@ -899,7 +899,55 @@ app.get('/api/dashboard', async (req, res) => {
   const { data: books } = await supabase.from('books').select('*')
   const { data: users } = await supabase.from('users').select('*')
   const { data: orders } = await supabase.from('orders').select('*')
+  const monthlyRevenue = {};
 
+orders?.forEach((order) => {
+  const month = new Date(order.created_at).toLocaleString("default", {
+    month: "short",
+  });
+
+  monthlyRevenue[month] =
+    (monthlyRevenue[month] || 0) + Number(order.total || 0);
+});
+const productSales = {};
+
+orders?.forEach((order) => {
+  order.items?.forEach((item) => {
+    const title = item.title;
+
+    productSales[title] =
+      (productSales[title] || 0) + Number(item.quantity || 1);
+  });
+});
+
+const topSellingProducts = Object.entries(productSales)
+  .map(([title, sold]) => ({
+    title,
+    sold,
+  }))
+  .sort((a, b) => b.sold - a.sold)
+  .slice(0, 5);
+const revenueChart = Object.keys(monthlyRevenue).map((month) => ({
+  month,
+  revenue: monthlyRevenue[month],
+}));
+  const { data: products } = await supabase
+  .from("products")
+  .select("*")
+  .order("created_at", { ascending: false });
+
+  const { data: categories } = await supabase
+  .from("categories")
+  .select("*");
+
+  const { data: subcategories } = await supabase
+  .from("subcategories")
+  .select("*");
+
+  const { data: vendors } = await supabase
+  .from("users")
+  .select("*")
+  .eq("role", "Vendor");
   const totalRevenue =
     orders?.reduce(
       (sum, order) => sum + Number(order.total || 0),
@@ -909,13 +957,40 @@ app.get('/api/dashboard', async (req, res) => {
   const recentOrders =
     orders?.slice(-5).reverse() || []
 
-  res.json({
-    totalBooks: books?.length || 0,
-    totalUsers: users?.length || 0,
-    totalOrders: orders?.length || 0,
-    totalRevenue,
-    recentOrders
-  })
+ res.json({
+  totalBooks: books?.length || 0,
+  totalUsers: users?.length || 0,
+  totalOrders: orders?.length || 0,
+  totalRevenue,
+
+  totalProducts: products?.length || 0,
+
+  totalCategories: categories?.length || 0,
+
+  totalSubcategories: subcategories?.length || 0,
+
+  totalVendors: vendors?.length || 0,
+
+  pendingProducts:
+    products?.filter(
+      p => p.approval_status === "Pending"
+    ).length || 0,
+
+  approvedProducts:
+    products?.filter(
+      p => p.approval_status === "Approved"
+    ).length || 0,
+
+  rejectedProducts:
+    products?.filter(
+      p => p.approval_status === "Rejected"
+    ).length || 0,
+
+  recentOrders,
+  latestProducts: products?.slice(0, 5) || [],
+  monthlyRevenue: revenueChart,
+  topSellingProducts,
+});
 })
 
 app.post('/api/admin/login', async (req, res) => {
