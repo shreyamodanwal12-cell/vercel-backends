@@ -755,19 +755,32 @@ app.get("/api/vendor/orders/:vendorId", async (req, res) => {
 
 // ---------------- GET PRODUCTS ----------------
 app.get('/api/products', async (req, res) => {
-const { data, error } = await supabase
-  .from("products")
-  .select(`
-    *,
-    categories(title),
-    subcategories(title)
-  `)
-  .order("created_at", { ascending: false });
+
+  const { vendor_id } = req.query;
+
+  let query = supabase
+    .from("products")
+    .select(`
+      *,
+      categories(title),
+      subcategories(title)
+    `);
+
+  if (vendor_id) {
+    query = query.eq("vendor_id", Number(vendor_id));
+  }
+
+  const { data, error } = await query.order(
+    "created_at",
+    { ascending: false }
+  );
 
   console.log("GET ERROR =", error);
 
   if (error) {
-    return res.status(500).json({ error: error.message });
+    return res.status(500).json({
+      error: error.message
+    });
   }
 
   res.json(data);
