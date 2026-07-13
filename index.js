@@ -598,6 +598,43 @@ app.post('/api/subcategories', async (req, res) => {
 
   res.json(data[0]);
 });
+
+app.post("/api/contact", async (req, res) => {
+  try {
+    console.log("CONTACT DATA =", req.body);
+
+    const { name, email, message } = req.body;
+
+    const { data, error } = await supabase
+      .from("contact_messages")
+      .insert([
+        {
+          name,
+          email,
+          message,
+        },
+      ])
+      .select();
+
+    console.log("CONTACT ERROR =", error);
+    console.log("CONTACT INSERT =", data);
+
+    if (error) {
+      return res.status(500).json({
+        error: error.message,
+      });
+    }
+
+    res.json(data);
+  } catch (err) {
+    console.log("SERVER ERROR =", err);
+
+    res.status(500).json({
+      error: err.message,
+    });
+  }
+});
+
 app.post("/api/upload-subcategory-image", upload.single("image"), async (req, res) => {
   try {
     if (!req.file) {
