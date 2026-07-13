@@ -2,13 +2,14 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 import express from 'express'
-//import cors from 'cors'
-import { createClient } from '@supabase/supabase-js'
 
 const app = express();
-
+import { supabase } from "./api/supabase.js";
 import cors from 'cors';
-
+import multer from "multer";
+const upload = multer({
+  storage: multer.memoryStorage(),
+});
 app.use(cors({
   origin: [
     "http://localhost:5173",
@@ -21,35 +22,17 @@ app.use(cors({
 app.options("*", cors());
 app.use(express.json())
 
-// function verifyVendor(req, res, next) {
-//   const auth = req.headers.authorization;
 
-//   if (!auth) {
-//     return res.status(401).json({
-//       success: false,
-//       message: "Token missing",
-//     });
-//   }
-
-//   if (auth !== "Bearer vendor-secret-token") {
-//     return res.status(403).json({
-//       success: false,
-//       message: "Unauthorized",
-//     });
-//   }
-
-//   next();
-// }
 
 const PORT = process.env.PORT || 4000
 
 // ---------------- SUPABASE ----------------
-console.log("SUPABASE_URL =", process.env.SUPABASE_URL)
-console.log("KEY EXISTS =", !!process.env.SUPABASE_SERVICE_ROLE_KEY)
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-)
+// console.log("SUPABASE_URL =", process.env.SUPABASE_URL)
+// console.log("KEY EXISTS =", !!process.env.SUPABASE_SERVICE_ROLE_KEY)
+// const supabase = createClient(
+//   process.env.SUPABASE_URL,
+//   process.env.SUPABASE_SERVICE_ROLE_KEY
+// )
 
 // ---------------- CATEGORIES ----------------
 app.post('/api/categories', async (req, res) => {
@@ -90,8 +73,8 @@ app.post('/api/categories', async (req, res) => {
 app.get('/api/categories', async (req, res) => {
   const { data, error } = await supabase
     .from('categories')
-    .select('*');
-
+    .select('*')
+ .order("created_at", { ascending: false });
   if (error) return res.status(500).json({ error: error.message });
 
   res.json(data);
@@ -310,6 +293,7 @@ app.get('/api/users', async (req, res) => {
     const { data, error } = await supabase
       .from('users')
       .select('*')
+      .order("created_at", { ascending: false });
 
     if (error) {
       return res.status(500).json({
@@ -331,7 +315,8 @@ app.get('/api/vendors', async (req, res) => {
     const { data, error } = await supabase
       .from('users')
       .select('*')
-      .eq('role', 'Vendor');
+      .eq('role', 'Vendor')
+      .order("created_at", { ascending: false });
 
     if (error) {
       return res.status(500).json({
@@ -492,15 +477,16 @@ app.post('/api/vendor/login', async (req, res) => {
 //   res.json(data[0]);
 // });
 
-app.get('/api/categories', async (req, res) => {
-  const { data, error } = await supabase
-    .from('categories')
-    .select('*');
+// app.get('/api/categories', async (req, res) => {
+//   const { data, error } = await supabase
+//     .from('categories')
+//     .select('*');
 
-  if (error) return res.status(500).json({ error: error.message });
+//   if (error) return res.status(500).json({ error: error.message });
 
-  res.json(data);
-});
+//   res.json(data);
+// });
+
 
 app.put('/api/categories/:id', async (req, res) => {
   const { data, error } = await supabase
@@ -543,8 +529,8 @@ app.get('/api/subcategories', async (req, res) => {
       id,
       title
     )
-  `);
-
+  `)
+.order("created_at", { ascending: false });
   console.log('DATA =', data);
   console.log('ERROR =', error);
 
@@ -557,7 +543,41 @@ app.get('/api/subcategories', async (req, res) => {
 
   res.json(data);
 });
+app.post("/api/upload", upload.single("image"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        error: "No file selected",
+      });
+    }
 
+    const fileName = Date.now() + "-" + req.file.originalname;
+
+    const { error } = await supabase.storage
+      .from("subcategory-images")
+      .upload(fileName, req.file.buffer, {
+        contentType: req.file.mimetype,
+      });
+
+    if (error) {
+      return res.status(500).json({
+        error: error.message,
+      });
+    }
+
+    const { data } = supabase.storage
+      .from("subcategory-images")
+      .getPublicUrl(fileName);
+
+    res.json({
+      image: data.publicUrl,
+    });
+  } catch (err) {
+    res.status(500).json({
+      error: err.message,
+    });
+  }
+});
 app.post('/api/subcategories', async (req, res) => {
   const { data, error } = await supabase
     .from('subcategories')
@@ -578,7 +598,38 @@ app.post('/api/subcategories', async (req, res) => {
 
   res.json(data[0]);
 });
+app.post("/api/upload-subcategory-image", upload.single("image"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        error: "No image selected",
+      });
+    }
 
+    const fileName = Date.now() + "-" + req.file.originalname;
+
+    const { error } = await supabase.storage
+      .from("subcategory-images")
+      .upload(fileName, req.file.buffer, {
+        contentType: req.file.mimetype,
+      });
+
+    if (error) {
+      return res.status(500).json({
+        error: error.message,
+      });
+    }
+
+    res.json({
+      image: fileName,
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      error: err.message,
+    });
+  }
+});
 app.put('/api/subcategories/:id', async (req, res) => {
   const { data, error } = await supabase
     .from('subcategories')
@@ -618,17 +669,20 @@ app.post('/api/orders', async (req, res) => {
   console.log('BODY =', req.body)
 
   try {
-   const { user_id, total, items } = req.body;
+   const { user_id, total, items, customer } = req.body;
     const { data, error } = await supabase
       .from('orders')
       .insert([
-        {
-           user_id: user_id || null,
-          total,
-          items,
-          status: 'Pending'
-          
-        }
+       {
+  user_id: user_id || null,
+  total,
+  items,
+  status: 'Pending',
+
+  customer_name: customer.name,
+  customer_phone: customer.phone,
+  customer_address: customer.address,
+}
       ])
       .select()
 
@@ -701,9 +755,14 @@ app.get("/api/vendor/orders/:vendorId", async (req, res) => {
 
 // ---------------- GET PRODUCTS ----------------
 app.get('/api/products', async (req, res) => {
-  const { data, error } = await supabase
-    .from('products')
-    .select('*');
+const { data, error } = await supabase
+  .from("products")
+  .select(`
+    *,
+    categories(title),
+    subcategories(title)
+  `)
+  .order("created_at", { ascending: false });
 
   console.log("GET ERROR =", error);
 
@@ -850,7 +909,7 @@ app.put("/api/products/:id", async (req, res) => {
   }
 
   res.json(data[0]);
-});
+a});
 
 app.delete("/api/products/:id", async (req, res) => {
   const { error } = await supabase
@@ -870,8 +929,8 @@ app.delete("/api/products/:id", async (req, res) => {
 app.get('/api/orders', async (req, res) => {
   const { data, error } = await supabase
     .from('orders')
-    .select('*');
-
+    .select('*')
+  .order("created_at", { ascending: false });
   if (error) return res.status(500).json({ error: error.message });
 
   res.json(data);
