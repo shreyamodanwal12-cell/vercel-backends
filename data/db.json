@@ -140,13 +140,13 @@
       "password": "user123",
       "role": "Shopper"
     },
-    {
-      "id": 2,
-      "name": "Admin User",
-      "email": "admin@ibid.com",
-      "password": "admin123",
-      "role": "Admin"
-    },
+   {
+  "id": 2,
+  "name": "Admin User",
+  "email": "adminwikcart@gmail.com",
+  "password": "w1234",
+  "role": "Admin"
+   },
     {
       "id": 3,
       "name": "srwarjbwjke",
