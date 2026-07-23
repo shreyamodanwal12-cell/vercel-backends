@@ -201,7 +201,9 @@ app.delete('/api/books/:id', async (req, res) => {
 app.post('/api/auth/register', async (req, res) => {
   try {
     const { name, email, password } = req.body
-
+    const referralCode =
+  name.toUpperCase().replaceAll(" ", "") +
+  Math.floor(Math.random() * 1000);
     if (!name || !email || !password) {
       return res.status(400).json({
         error: 'Name, email, and password are required'
@@ -227,7 +229,8 @@ app.post('/api/auth/register', async (req, res) => {
           name,
           email,
           password,
-          role: 'Shopper'
+          role: 'Shopper',
+      referral_code: referralCode
         }
       ])
       .select()
@@ -238,15 +241,16 @@ app.post('/api/auth/register', async (req, res) => {
 
     const newUser = data[0]
 
-    res.status(201).json({
-      token: `ibid-user-token-${newUser.id}`,
-      user: {
-        id: newUser.id,
-        name: newUser.name,
-        email: newUser.email,
-        role: newUser.role
-      }
-    })
+   res.status(201).json({
+  token: `ibid-user-token-${newUser.id}`,
+  user: {
+    id: newUser.id,
+    name: newUser.name,
+    email: newUser.email,
+    role: newUser.role,
+    referral_code: newUser.referral_code
+  }
+})
 
   } catch (err) {
     res.status(500).json({ error: err.message })
@@ -254,20 +258,23 @@ app.post('/api/auth/register', async (req, res) => {
 })
 app.post('/api/auth/login', async (req, res) => {
   console.log("LOGIN BODY =", req.body);
+
   try {
-    const { email, password } = req.body
+    const { email, password } = req.body;
 
     const { data, error } = await supabase
       .from('users')
       .select('*')
       .eq('email', email)
       .eq('password', password)
-      .single()
+      .single();
+
+    console.log("LOGIN USER =", data);
 
     if (error || !data) {
       return res.status(401).json({
         error: 'Invalid email or password'
-      })
+      });
     }
 
     res.json({
@@ -276,16 +283,19 @@ app.post('/api/auth/login', async (req, res) => {
         id: data.id,
         name: data.name,
         email: data.email,
-        role: data.role
+        role: data.role,
+        referral_code: data.referral_code
       }
-    })
+    });
 
   } catch (err) {
+    console.log("LOGIN ERROR =", err);
+
     res.status(500).json({
       error: err.message
-    })
+    });
   }
-})
+});
 
 //user api
 app.get('/api/users', async (req, res) => {
@@ -899,11 +909,15 @@ app.get("/api/vendor/products/:vendorId",
   }
 });
 app.get('/api/products/:id', async (req, res) => {
+  console.log("PRODUCT ID =", req.params.id);
+
   const { data, error } = await supabase
-    .from('products')
-    .select('*')
-    .eq('id', req.params.id)
-    .single();
+    .from("products")
+    .select("*")
+    .eq("id", req.params.id);
+
+  console.log("DATA =", data);
+  console.log("ERROR =", error);
 
   if (error) {
     return res.status(500).json({
@@ -911,7 +925,13 @@ app.get('/api/products/:id', async (req, res) => {
     });
   }
 
-  res.json(data);
+  if (!data || data.length === 0) {
+    return res.status(404).json({
+      error: "Product not found",
+    });
+  }
+
+  res.json(data[0]);
 });
 
 // ---------------- CREATE PRODUCT ----------------
@@ -941,6 +961,29 @@ product.vendor_id = Number(product.vendor_id);
   res.status(201).json(data[0]);
 });
 
+
+app.get("/api/coupons/:code", async (req, res) => {
+  const { code } = req.params;
+
+  const { data, error } = await supabase
+    .from("coupons")
+    .select("*")
+    .eq("code", code.toUpperCase())
+    .eq("is_active", true)
+    .single();
+
+  if (error || !data) {
+    return res.status(404).json({
+      success: false,
+      message: "Invalid coupon",
+    });
+  }
+
+  res.json({
+    success: true,
+    coupon: data,
+  });
+});
 //--------------post product
 app.put("/api/products/:id", async (req, res) => {
   const { data, error } = await supabase
@@ -959,7 +1002,7 @@ app.put("/api/products/:id", async (req, res) => {
   }
 
   res.json(data[0]);
-a});
+});
 
 app.delete("/api/products/:id", async (req, res) => {
   const { error } = await supabase
@@ -990,11 +1033,12 @@ app.get('/api/orders', async (req, res) => {
 // GET SINGLE ORDER
 app.get('/api/orders/:id', async (req, res) => {
   const id = Number(req.params.id);
-
+  const { user_id } = req.query;
   const { data, error } = await supabase
     .from('orders')
     .select('*')
     .eq('id', id)
+    .eq("user_id", user_id)
     .maybeSingle();
 
   if (error) return res.status(500).json({ error: error.message });
@@ -1101,7 +1145,23 @@ const revenueChart = Object.keys(monthlyRevenue).map((month) => ({
   topSellingProducts,
 });
 })
+app.get("/api/my-orders/:userId", async (req, res) => {
+  const { userId } = req.params;
 
+  const { data, error } = await supabase
+    .from("orders")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    return res.status(500).json({
+      error: error.message,
+    });
+  }
+
+  res.json(data);
+});
 app.post('/api/admin/login', async (req, res) => {
   try {
     console.log('ADMIN LOGIN BODY =', req.body)
@@ -1136,6 +1196,66 @@ app.post('/api/admin/login', async (req, res) => {
     })
   }
 }) 
+
+
+app.post("/api/offers", async (req, res) => {
+  console.log("API HIT");
+
+  try {
+    console.log("BODY =", req.body);
+
+    const { code, discount, start_date, end_date } = req.body;
+
+    const { data, error } = await supabase
+      .from("offers")
+      .insert([
+        {
+          code,
+          discount,
+          start_date,
+          end_date,
+        },
+      ])
+      .select();
+
+    console.log("DATA =", data);
+    console.log("ERROR =", error);
+
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    res.json({
+      success: true,
+      offer: data,
+    });
+  } catch (err) {
+    console.log("CATCH ERROR =", err);
+
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+});
+app.get("/api/offers", async (req, res) => {
+  const { data, error } = await supabase
+    .from("offers")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+
+  res.json(data);
+});
 // ---------------- START SERVER ----------------
 if (process.env.NODE_ENV !== "production") {
   app.listen(PORT, () => {
